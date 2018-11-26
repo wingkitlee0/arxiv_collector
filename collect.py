@@ -1,6 +1,6 @@
 import collector
 import argparse
-from datetime import date
+from datetime import date, timedelta
 import pandas as pd
 
 if __name__=='__main__':
@@ -10,6 +10,7 @@ if __name__=='__main__':
     parser.add_argument('-start', type=str, default="2016-08-01", help="start date (YY-MM-DD), (default 2016-08-01) ")
     parser.add_argument('-end', type=str, default="2016-08-31", help="end date (YY-MM-DD), (default 2016-08-31) ")
     parser.add_argument('out', type=str, help="output filename (.h5)")
+    parser.add_argument('-dry', action="store_true", help="dry run")
     args = parser.parse_args()
 
     startdate = date( *(int(s) for s in args.start.split("-")))
@@ -18,7 +19,7 @@ if __name__=='__main__':
     print(startdate)
     print(enddate)
 
-    deltatime = enddate - startdate
+    deltatime = enddate - startdate + timedelta(1,0,0)
 
     PROCEED = False
     if deltatime.days > 0:
@@ -29,6 +30,10 @@ if __name__=='__main__':
         else:
             print("# Preparing to download.")
             PROCEED = True
+
+    if args.dry:
+        print("# This is a dry-run only.")
+        PROCEED = False
 
     if PROCEED:
         df = collector.harvest(arxiv=args.c, from_date=args.start, until_date=args.end)
