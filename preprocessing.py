@@ -22,12 +22,18 @@ class AstroPhData:
                         'astro-ph.HE' : 4,
                         'astro-ph.CO' : 5
                     }
-    def __init__(self, filename):
+    def __init__(self, filename, overwrite=False):
         self.filename = filename
-        store = pd.HDFStore(self.filename, 'r')
-        self.df = store['df']
-        store.close()
+        self.overwrite = overwrite
 
+        if self.overwrite:
+            self.store = pd.HDFStore(self.filename, 'a')
+        else:
+            self.store = pd.HDFStore(self.filename, 'r')
+        
+        self.df = self.store['df']
+        self.store.close()
+        
     def preprocess(self):
         """preprocess:
 
@@ -56,10 +62,16 @@ class AstroPhData:
         self.df['label'] = pd.to_numeric(self.df['label'], downcast='integer')
 
     def output(self):
-        self.outputfile = self.filename.split('.h5')[0] + "_p.h5"
-        store = pd.HDFStore(self.outputfile, 'w')
-        store['df'] = self.df
-        store.close()
+
+        if self.overwrite:
+            self.store.open()
+            self.store['df'] = self.df
+            self.store.close()
+        else:
+            self.outputfile = self.filename.split('.h5')[0] + "_p.h5"
+            self.store = pd.HDFStore(self.outputfile, 'w')
+            self.store['df'] = self.df
+            self.store.close()
         print("# finished output()")
 
 
@@ -67,9 +79,10 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('h5file', type=str, help="input file")
+    parser.add_argument('-over', action='store_true', help='overwrite the file with an extra column')
     args = parser.parse_args()
 
-    data = AstroPhData(args.h5file)
+    data = AstroPhData(args.h5file, overwrite=args.over)
     data.preprocess()
     data.output()
     
