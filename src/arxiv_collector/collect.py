@@ -1,9 +1,9 @@
-import collector
 import argparse
 from datetime import date, timedelta
 import pandas as pd
+from . import collect
 
-if __name__=='__main__':
+def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-c', type=str, default="physics:astro-ph", help="Arxiv category")
@@ -42,3 +42,6 @@ if __name__=='__main__':
         store['df'] = df
         store.close()
 
+if __name__=='__main__':
+    main()
+    
