@@ -56,7 +56,13 @@ def harvest(arxiv="physics:astro-ph", from_date="2016-08-01", until_date="2016-0
             created = info.find(ARXIV+"created").text
             created = datetime.datetime.strptime(created, "%Y-%m-%d")
             categories = info.find(ARXIV+"categories").text
+            authors = info.find(ARXIV+"authors").findall(ARXIV+"author")
 
+            # first author only
+            keyname = authors[0].find(ARXIV+"keyname").text if authors[0].find(ARXIV+"keyname") is not None else ""
+            forenames = authors[0].find(ARXIV+"forenames").text if authors[0].find(ARXIV+"forenames") is not None else ""
+            first_author = f"{keyname} {forenames}"
+            
             # if there is more than one DOI use the first one
             # often the second one (if it exists at all) refers
             # to an eratum or similar
@@ -70,6 +76,7 @@ def harvest(arxiv="physics:astro-ph", from_date="2016-08-01", until_date="2016-0
                         'created': created,
                         'categories': categories.split(),
                         'doi': doi,
+                        'first_author': first_author,
                         }
 
             df = df.append(contents, ignore_index=True)
