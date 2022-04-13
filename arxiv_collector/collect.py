@@ -9,9 +9,7 @@ from arxiv_collector import collector
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        "-c", type=str, default="physics:astro-ph", help="Arxiv category"
-    )
+    parser.add_argument("-c", type=str, default="physics:astro-ph", help="Arxiv category")
     parser.add_argument(
         "-start",
         type=str,
@@ -26,9 +24,7 @@ def main():
     )
     parser.add_argument("out", type=str, help="output filename (.h5 or .csv)")
     parser.add_argument("-dry", action="store_true", help="dry run")
-    parser.add_argument(
-        "-csv", action="store_true", help="use csv as output (default False)"
-    )
+    parser.add_argument("-csv", action="store_true", help="use csv as output (default False)")
     args = parser.parse_args()
 
     startdate = date(*(int(s) for s in args.start.split("-")))

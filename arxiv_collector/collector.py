@@ -4,13 +4,9 @@ import time
 # python 3
 import urllib.error
 import xml.etree.ElementTree as ET
-
-# from itertools import ifilter
-from collections import Counter, defaultdict
 from urllib.request import urlopen
 
 import pandas as pd
-from bs4 import BeautifulSoup
 
 pd.set_option("mode.chained_assignment", "warn")
 
@@ -23,16 +19,9 @@ def harvest(arxiv="physics:astro-ph", from_date="2016-08-01", until_date="2016-0
     """
     input: arxiv is the "set" defined in http://export.arxiv.org/oai2?verb=ListSets
     """
-    df = pd.DataFrame(
-        columns=("title", "abstract", "categories", "created", "id", "doi")
-    )
+    df = pd.DataFrame(columns=("title", "abstract", "categories", "created", "id", "doi"))
     base_url = "http://export.arxiv.org/oai2?verb=ListRecords"
-    url = (
-        base_url
-        + "&from=%s" % from_date
-        + "&until=%s" % until_date
-        + "&metadataPrefix=arXiv&set=%s" % arxiv
-    )
+    url = base_url + "&from=%s" % from_date + "&until=%s" % until_date + "&metadataPrefix=arXiv&set=%s" % arxiv
 
     while True:
         print("fetching", url)
@@ -55,7 +44,7 @@ def harvest(arxiv="physics:astro-ph", from_date="2016-08-01", until_date="2016-0
         root = ET.fromstring(xml)
 
         for record in root.find(OAI + "ListRecords").findall(OAI + "record"):
-            arxiv_id = record.find(OAI + "header").find(OAI + "identifier")
+            # arxiv_id = record.find(OAI + "header").find(OAI + "identifier")
             meta = record.find(OAI + "metadata")
             info = meta.find(ARXIV + "arXiv")
             created = info.find(ARXIV + "created").text
@@ -64,15 +53,9 @@ def harvest(arxiv="physics:astro-ph", from_date="2016-08-01", until_date="2016-0
             authors = info.find(ARXIV + "authors").findall(ARXIV + "author")
 
             # first author only
-            keyname = (
-                authors[0].find(ARXIV + "keyname").text
-                if authors[0].find(ARXIV + "keyname") is not None
-                else ""
-            )
+            keyname = authors[0].find(ARXIV + "keyname").text if authors[0].find(ARXIV + "keyname") is not None else ""
             forenames = (
-                authors[0].find(ARXIV + "forenames").text
-                if authors[0].find(ARXIV + "forenames") is not None
-                else ""
+                authors[0].find(ARXIV + "forenames").text if authors[0].find(ARXIV + "forenames") is not None else ""
             )
             first_author = f"{keyname} {forenames}"
 

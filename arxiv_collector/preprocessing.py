@@ -1,6 +1,5 @@
 import argparse
 
-import numpy as np
 import pandas as pd
 
 """
@@ -84,9 +83,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("h5file", type=str, help="input file")
-    parser.add_argument(
-        "-over", action="store_true", help="overwrite the file with an extra column"
-    )
+    parser.add_argument("-over", action="store_true", help="overwrite the file with an extra column")
     args = parser.parse_args()
 
     data = AstroPhData(args.h5file, overwrite=args.over)
