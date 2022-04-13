@@ -1,7 +1,8 @@
 import argparse
 from datetime import date, timedelta
+
 import pandas as pd
-from . import collector
+from arxiv_collector import collector
 
 def main():
     parser = argparse.ArgumentParser()
@@ -55,4 +56,3 @@ def main():
 
 if __name__=='__main__':
     main()
-    
