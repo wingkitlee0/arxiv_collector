@@ -2,12 +2,7 @@ import argparse
 
 import pandas as pd
 
-"""
-Script for pre-proceeding.
-
-Astro-ph only
-
-
+"""Script for pre-processing. Supporing Astro-ph only
 """
 
 

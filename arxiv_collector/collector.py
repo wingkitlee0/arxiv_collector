@@ -1,4 +1,5 @@
 import datetime
+import logging
 import time
 
 # python 3
@@ -8,30 +9,36 @@ from urllib.request import urlopen
 
 import pandas as pd
 
+logger = logging.getLogger(__name__)
+
 pd.set_option("mode.chained_assignment", "warn")
 
 
 OAI = "{http://www.openarchives.org/OAI/2.0/}"
 ARXIV = "{http://arxiv.org/OAI/arXiv/}"
+BASE_URL = "http://export.arxiv.org/oai2?verb=ListRecords"
 
 
-def harvest(arxiv="physics:astro-ph", from_date="2016-08-01", until_date="2016-08-31"):
+def get_arxiv_url(arxiv: str, from_date: str, until_date: str) -> str:
+    return f"{BASE_URL}&from={from_date}&until={until_date}&metadataPrefix=arXiv&set={arxiv}"
+
+
+def harvest(arxiv="physics:astro-ph", from_date="2016-08-01", until_date="2016-08-31") -> pd.DataFrame:
     """
     input: arxiv is the "set" defined in http://export.arxiv.org/oai2?verb=ListSets
     """
-    df = pd.DataFrame(columns=("title", "abstract", "categories", "created", "id", "doi"))
-    base_url = "http://export.arxiv.org/oai2?verb=ListRecords"
-    url = base_url + "&from=%s" % from_date + "&until=%s" % until_date + "&metadataPrefix=arXiv&set=%s" % arxiv
+
+    url = get_arxiv_url(arxiv, from_date, until_date)
 
     while True:
-        print("fetching", url)
+        logger.info("fetching %s", url)
         try:
             response = urlopen(url)
 
         except urllib.error.HTTPError as e:
             if e.code == 503:
                 to = int(e.hdrs.get("retry-after", 30))
-                print("Got 503. Retrying after {0:d} seconds.".format(to))
+                logger.info("Got 503. Retrying after {0:d} seconds.".format(to))
 
                 time.sleep(to)
                 continue
@@ -43,6 +50,7 @@ def harvest(arxiv="physics:astro-ph", from_date="2016-08-01", until_date="2016-0
 
         root = ET.fromstring(xml)
 
+        dfs: list[pd.DataFrame] = []
         for record in root.find(OAI + "ListRecords").findall(OAI + "record"):
             # arxiv_id = record.find(OAI + "header").find(OAI + "identifier")
             meta = record.find(OAI + "metadata")
@@ -76,7 +84,10 @@ def harvest(arxiv="physics:astro-ph", from_date="2016-08-01", until_date="2016-0
                 "first_author": first_author,
             }
 
-            df = df.append(contents, ignore_index=True)
+            df = pd.DataFrame(contents)
+            dfs.append(df)
+
+        df_all = pd.concat(dfs, ignore_index=True)
 
         # The list of articles returned by the API comes in chunks of
         # 1000 articles. The presence of a resumptionToken tells us that
@@ -86,6 +97,6 @@ def harvest(arxiv="physics:astro-ph", from_date="2016-08-01", until_date="2016-0
             break
 
         else:
-            url = base_url + "&resumptionToken=%s" % (token.text)
-    print("fetching finished.")
-    return df
+            url = f"{BASE_URL}&resumptionToken={token.text}"
+    logger.info("fetching finished.")
+    return df_all
